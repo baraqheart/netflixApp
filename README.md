@@ -1,5 +1,5 @@
 ## DEVSECOPS COMPLETE PROJECT ON NETFLIXAPP
-[Jenkins, sonarQube, Trivy, Javaascript, Prometheus, Grafana, Docker, Helm, Argocd and Kubernetes]
+[Jenkins, sonarQube, Trivy, Javascript, Prometheus, Grafana, Docker, Helm, Argocd and Kubernetes]
   
 
 ## 

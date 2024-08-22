@@ -1,0 +1,29 @@
+trigger:
+- master 
+
+steps:
+ # Checkout the repository
+ - checkout: self
+ 
+ # Disable shallow fetch
+   fetchDepth: 0
+
+# Prepare Analysis Configuration task
+- task: SonarQubePrepare@6
+  displayName: 
+  inputs:
+    SonarQube: 'YourSonarqubeServerEndpoint'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: 'YourProjectKey'
+
+# Run Code Analysis task
+- task: SonarQubeAnalyze@6
+  inputs:
+    jdkversion: 'JAVA_HOME_17_X64'
+
+# Publish Quality Gate Result task
+- task: SonarQubePublish@6
+  inputs:
+    pollingTimeoutSec: '300'
+
