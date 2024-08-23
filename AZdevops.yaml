@@ -1,29 +1,101 @@
 trigger:
 - master 
 
-steps:
- # Checkout the repository
- - checkout: self
- 
- # Disable shallow fetch
-   fetchDepth: 0
+pool:
+  vmImage: ubuntu-latest
+variables:
+  acr-servcon: ''
+  docker-servcon: ''
 
-# Prepare Analysis Configuration task
-- task: SonarQubePrepare@6
-  displayName: 
-  inputs:
-    SonarQube: 'YourSonarqubeServerEndpoint'
-    scannerMode: 'CLI'
-    configMode: 'manual'
-    cliProjectKey: 'YourProjectKey'
+jobs:
+- job: Checkout
+  steps:
+    
 
-# Run Code Analysis task
-- task: SonarQubeAnalyze@6
-  inputs:
-    jdkversion: 'JAVA_HOME_17_X64'
+- job: SonarQube
+  
+  step:
+  # Prepare Analysis Configuration task
+  - task: SonarQubePrepare@6
+    displayName: 'SonarQube code analysis'
+    inputs:
+      SonarQube: 'YourSonarqubeServerEndpoint'
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: 'YourProjectKey' 
 
-# Publish Quality Gate Result task
-- task: SonarQubePublish@6
-  inputs:
+- job: Quality gate
+  steps:
+  # Run Code Analysis task
+  - task: SonarQubeAnalyze@6
+    inputs:
+      jdkversion: 'JAVA_HOME_17_X64'
+
+  # Publish Quality Gate Result task
+  - task: SonarQubePublish@6
+    inputs:
     pollingTimeoutSec: '300'
+
+
+- job: Dependencies
+  
+  steps:
+  # npm v1
+  # Install and publish npm packages
+  - task: Npm@1
+    displayName: 'install and publish dependencies'
+    inputs:
+      command: 'install' 
+      workingDir: '.'
+       
+     
+- job: OWASP
+  steps:
+
+
+- job: Trivy FS  
+  steps:
+  - task: trivy@1
+    inputs:
+      path: .
+
+- job: Build n Push
+  steps:
+  - task : Docker@2
+    inputs:
+      containerRegistry: $acr-servcon
+      command: 'login'
+
+  - task : Docker@2
+    inputs:
+      containerRegistry: $docker-servcon
+      command: 'login'
+
+  # Build docker image
+  - task: Docker@2
+    inputs:  
+      containerRegistry: 
+      repository: # repository  
+      command: 'build' 
+      Dockerfile: '**/Dockerfile'
+      #buildContext: '**' 
+     
+  - task: Docker@2
+    inputs:  
+      containerRegistry: 
+      repository: # repository  
+      command: 'push' 
+      
+    
+- job: Scan Image
+  steps:
+  - task: trivy@1
+    inputs:
+      image: 
+
+- job: Deploy
+
+- job: Deploy k8s
+
+
 

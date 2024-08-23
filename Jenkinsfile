@@ -8,7 +8,8 @@ pipeline {
     environment{
         def scannerHome = tool 'SonarScanner 4.0';
         def imageRegistry = '' ;
-        def image = '' ;
+        def image_name = '' ;
+        def image_tag = '';
     }
 
     stages {
@@ -65,7 +66,11 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
+                script {
                 echo 'login and push to docker registry'
+                
+                
+                }
             }
         }
 
