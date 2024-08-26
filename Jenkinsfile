@@ -8,15 +8,16 @@ pipeline {
     environment{
         def scannerHome = tool 'SonarScanner 4.0';
         def imageRegistry = '' ;
-        def image_name = '' ;
-        def image_tag = '';
+        def image = '';
+        def image_name = $imageRegistry/$image:$tag ;
+        def tag = '';
     }
 
     stages {
         // git checkout from repository
         stage('Git checkout') {
             steps {
-                git branch: 'master', url: ''                
+                git branch: 'master', url: 'https://github.com/baraqheart/netflixApp.git'                
             }
         }
 
@@ -39,7 +40,7 @@ pipeline {
 
         stage('Install DP') {
             steps {
-                echo 'intalling dependency'
+                echo 'installing dependency'
                 sh 'npm install'
 
             }
@@ -60,7 +61,7 @@ pipeline {
         stage('Build Image') {
             steps {
                echo 'building docker image for the app' 
-               sh 'docker build --buld-args ( cat .env | xargs )-t $imageRegistry/$image .'
+               sh 'docker build --build-args ( cat .env | xargs ) -t $image_name .'
             }
         }
 
@@ -77,7 +78,7 @@ pipeline {
         stage('Trivy Image scan') {
             steps {
                 echo 'running trivy image scan and saving report to trivyimagereport.txt'
-                sh 'trivy image $image >> trivyimagereport.txt'
+                sh 'trivy image $image_name >> trivyimagereport.txt'
             }
         }
    

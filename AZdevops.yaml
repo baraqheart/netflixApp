@@ -3,6 +3,7 @@ trigger:
 
 pool:
   vmImage: ubuntu-latest
+
 variables:
   acr-servcon: ''
   docker-servcon: ''
@@ -25,6 +26,7 @@ jobs:
       cliProjectKey: 'YourProjectKey' 
 
 - job: Quality gate
+  dependsOn: SonarQube
   steps:
   # Run Code Analysis task
   - task: SonarQubeAnalyze@6
@@ -34,7 +36,7 @@ jobs:
   # Publish Quality Gate Result task
   - task: SonarQubePublish@6
     inputs:
-    pollingTimeoutSec: '300'
+      pollingTimeoutSec: '300'
 
 
 - job: Dependencies
@@ -74,16 +76,18 @@ jobs:
   # Build docker image
   - task: Docker@2
     inputs:  
-      containerRegistry: 
-      repository: # repository  
-      command: 'build' 
+      containerRegistry:  
+      command: 'build'      
       Dockerfile: '**/Dockerfile'
       #buildContext: '**' 
-     
+      repository: |
+      'app/netflixApp'
+      'beeygold/netflixApp'
+
   - task: Docker@2
     inputs:  
       containerRegistry: 
-      repository: # repository  
+      #repository: # repository  
       command: 'push' 
       
     
@@ -91,11 +95,11 @@ jobs:
   steps:
   - task: trivy@1
     inputs:
-      image: 
+      image: beeygold/netflixApp
 
-- job: Deploy
+- job: Deploy 
 
-- job: Deploy k8s
+- job: Deploy k8s     
 
 
 
