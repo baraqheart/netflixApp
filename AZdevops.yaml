@@ -4,9 +4,9 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-variables:
-  acr-servcon: ''
-  docker-servcon: ''
+variables:  
+  DOCKER_SERVICE_CONNECTION: 'docker-servcon'
+  ACR_SERVICE_CONNECTION: 'acr-servcon'
 
 jobs:
 - job: Checkout
@@ -30,17 +30,18 @@ jobs:
   steps:
   # Run Code Analysis task
   - task: SonarQubeAnalyze@6
+    displayName: 'run code analysis task'
     inputs:
       jdkversion: 'JAVA_HOME_17_X64'
 
   # Publish Quality Gate Result task
   - task: SonarQubePublish@6
+    displayName: 'publish quality gate result task'
     inputs:
       pollingTimeoutSec: '300'
 
 
-- job: Dependencies
-  
+- job: Dependencies 
   steps:
   # npm v1
   # Install and publish npm packages
@@ -51,12 +52,13 @@ jobs:
       workingDir: '.'
        
      
-- job: OWASP
-  steps:
+#- job: OWASP
+#  steps:
 
 
 - job: Trivy FS  
   steps:
+  displayName: 'run file scan using trivy'
   - task: trivy@1
     inputs:
       path: .
@@ -64,42 +66,39 @@ jobs:
 - job: Build n Push
   steps:
   - task : Docker@2
+    displayName: 'login in to docker registry'
     inputs:
-      containerRegistry: $acr-servcon
+      containerRegistry: $DOCKER_SERVICE_CONNECTION
       command: 'login'
 
   - task : Docker@2
+    displayName: 'login to acr registry'
     inputs:
-      containerRegistry: $docker-servcon
+      containerRegistry: $ACR_SERVICE_CONNECTION
       command: 'login'
 
   # Build docker image
   - task: Docker@2
-    inputs:  
-      containerRegistry:  
-      command: 'build'      
-      Dockerfile: '**/Dockerfile'
-      #buildContext: '**' 
+    displayName: 'build and push image to registries'
+    inputs:              
+      command: 'buildAndPush'      
+      Dockerfile: './Dockerfile'
+       
       repository: |
-      'app/netflixApp'
-      'beeygold/netflixApp'
-
-  - task: Docker@2
-    inputs:  
-      containerRegistry: 
-      #repository: # repository  
-      command: 'push' 
+        'app/netflixApp'
+        'beeygold/netflixApp'
       
     
 - job: Scan Image
   steps:
   - task: trivy@1
+    displayName: 'run image scan using trivy'
     inputs:
       image: beeygold/netflixApp
 
-- job: Deploy 
+#- job: Deploy 
 
-- job: Deploy k8s     
+#- job: Deploy k8s     
 
 
 
