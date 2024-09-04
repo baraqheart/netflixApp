@@ -25,7 +25,7 @@ jobs:
       configMode: 'manual'
       cliProjectKey: 'YourProjectKey' 
 
-- job: Quality gate
+- job: QualityGate
   dependsOn: SonarQube
   steps:
   # Run Code Analysis task
@@ -56,26 +56,22 @@ jobs:
 #  steps:
 
 
-- job: Trivy FS  
+- job: TrivyFS  
   steps:
   displayName: 'run file scan using trivy'
   - task: trivy@1
     inputs:
       path: .
 
-- job: Build n Push
+- job: BuildnPush
   steps:
   - task : Docker@2
     displayName: 'login in to docker registry'
     inputs:
-      containerRegistry: $DOCKER_SERVICE_CONNECTION
+      containerRegistry: docker-servcon
       command: 'login'
 
-  - task : Docker@2
-    displayName: 'login to acr registry'
-    inputs:
-      containerRegistry: $ACR_SERVICE_CONNECTION
-      command: 'login'
+ 
 
   # Build docker image
   - task: Docker@2
@@ -85,11 +81,10 @@ jobs:
       Dockerfile: './Dockerfile'
        
       repository: |
-        'app/netflixApp'
         'beeygold/netflixApp'
       
     
-- job: Scan Image
+- job: ScanImage
   steps:
   - task: trivy@1
     displayName: 'run image scan using trivy'
@@ -97,6 +92,12 @@ jobs:
       image: beeygold/netflixApp
 
 #- job: Deploy 
+
+- job: Deploy
+  steps:
+  - task:
+    displayName: 'deploy the image to docker'
+    command: 'run'
 
 #- job: Deploy k8s     
 
