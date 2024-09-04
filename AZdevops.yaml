@@ -42,13 +42,14 @@ jobs:
 
 
 - job: Dependencies 
+  dependsOn: QualityGate
   steps:
   # npm v1
   # Install and publish npm packages
   - task: Npm@1
     displayName: 'install and publish dependencies'
     inputs:
-      command: 'install' 
+      command: install
       workingDir: '.'
        
      
@@ -57,6 +58,7 @@ jobs:
 
 
 - job: TrivyFS  
+  dependsOn: Dependencies
   steps:
   displayName: 'run file scan using trivy'
   - task: trivy@1
@@ -64,12 +66,14 @@ jobs:
       path: .
 
 - job: BuildnPush
+  dependsOn: TrivyFS
+  
   steps:
   - task : Docker@2
     displayName: 'login in to docker registry'
     inputs:
       containerRegistry: docker-servcon
-      command: 'login'
+      command: login
 
  
 
@@ -77,7 +81,7 @@ jobs:
   - task: Docker@2
     displayName: 'build and push image to registries'
     inputs:              
-      command: 'buildAndPush'      
+      command: buildAndPush      
       Dockerfile: './Dockerfile'
        
       repository: |
@@ -85,6 +89,7 @@ jobs:
       
     
 - job: ScanImage
+  dependsOn: BuildnPush
   steps:
   - task: trivy@1
     displayName: 'run image scan using trivy'
@@ -94,10 +99,11 @@ jobs:
 #- job: Deploy 
 
 - job: Deploy
+  dependsOn: ScanImage
   steps:
   - task:
     displayName: 'deploy the image to docker'
-    command: 'run'
+    command: start
 
 #- job: Deploy k8s     
 
